@@ -37,18 +37,8 @@ export function formatMoney(
   fallback = '—',
 ): string {
   const big = value instanceof Big ? value : parseDecimal(value)
-  if (!big) {
-    // Big can't be constructed from 0-like nulls above; treat explicit "0" here
-    const parsed = typeof value === 'string' ? parseDecimal(value) : null
-    if (!parsed && !(value instanceof Big)) {
-      if (typeof value === 'string' && parseDecimal(value)?.eq(0)) {
-        return `$0.00`
-      }
-      return fallback
-    }
-  }
-  const resolved = big ?? new Big(0)
-  return `$${withThousandsSeparators(resolved.toFixed(2))}`
+  if (!big) return fallback
+  return `$${withThousandsSeparators(big.toFixed(2))}`
 }
 
 /** True when both parse and are numerically equal. */
