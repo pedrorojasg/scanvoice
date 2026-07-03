@@ -56,8 +56,8 @@ export function ProductsPage() {
               Products appear here automatically when invoices are imported — each saved
               invoice adds its line items to this catalog.
             </p>
-            <Button asChild className="mt-2">
-              <Link to="/scan">Scan an invoice</Link>
+            <Button className="mt-2" render={<Link to="/scan" />}>
+              Scan an invoice
             </Button>
           </div>
         ) : (

@@ -58,18 +58,20 @@ export async function requestExtraction(text: string): Promise<ExtractedInvoice>
     )
   }
 
-  let payload: unknown
+  let payload: unknown = null
   try {
     payload = await response.json()
   } catch {
-    throw new ExtractionError('The extraction service returned an unreadable response.')
+    if (response.ok) {
+      throw new ExtractionError('The extraction service returned an unreadable response.')
+    }
   }
 
   if (!response.ok) {
     const message =
       typeof payload === 'object' && payload !== null && 'error' in payload
         ? String((payload as { error: unknown }).error)
-        : `Extraction failed (HTTP ${response.status}).`
+        : `The extraction service is unavailable (HTTP ${response.status}).`
     throw new ExtractionError(message)
   }
 

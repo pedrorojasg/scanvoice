@@ -93,9 +93,7 @@ export function InvoicesPage() {
               explore the dashboard.
             </p>
             <div className="mt-2 flex gap-2">
-              <Button asChild>
-                <Link to="/scan">Scan invoice</Link>
-              </Button>
+              <Button render={<Link to="/scan" />}>Scan invoice</Button>
               <Button
                 variant="outline"
                 onClick={() => {

@@ -1,7 +1,12 @@
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist'
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
-
-GlobalWorkerOptions.workerSrc = workerUrl
+/** pdf.js is heavy; load it (and its worker) only when a scan starts. */
+async function loadPdfjs() {
+  const [pdfjs, worker] = await Promise.all([
+    import('pdfjs-dist'),
+    import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
+  ])
+  pdfjs.GlobalWorkerOptions.workerSrc = worker.default
+  return pdfjs
+}
 
 export interface PdfText {
   text: string
@@ -16,6 +21,7 @@ export class PdfTextError extends Error {}
 export async function extractPdfText(file: File): Promise<PdfText> {
   let pdf
   try {
+    const { getDocument } = await loadPdfjs()
     const data = await file.arrayBuffer()
     pdf = await getDocument({ data }).promise
   } catch {

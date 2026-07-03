@@ -1,4 +1,4 @@
-import type { Invoice, InvoiceLineItem, InvoiceStatus } from '@/types'
+import type { InvoiceLineItem, InvoiceStatus } from '@/types'
 import { isSeeded, markSeeded, hasAnyData, saveInvoice } from '@/lib/storage'
 
 let seedCounter = 0

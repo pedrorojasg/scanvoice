@@ -74,11 +74,9 @@ function NotFound({ title, body }: { title: string; body: string }) {
       <p className="font-semibold">{title}</p>
       <p className="text-[13px] text-ink-2">{body}</p>
       <div className="mt-2 flex gap-2">
-        <Button asChild>
-          <Link to="/scan">Scan invoice</Link>
-        </Button>
-        <Button variant="outline" asChild>
-          <Link to="/">Back to invoices</Link>
+        <Button render={<Link to="/scan" />}>Scan invoice</Button>
+        <Button variant="outline" render={<Link to="/" />}>
+          Back to invoices
         </Button>
       </div>
     </div>
@@ -197,6 +195,7 @@ export function InvoiceEditorPage({ mode }: { mode: 'draft' | 'saved' }) {
               </Label>
               <Select
                 value={invoice.status}
+                items={STATUS_LABELS}
                 onValueChange={(v) => set('status', v as InvoiceStatus)}
               >
                 <SelectTrigger id="status" className="w-full">
@@ -433,9 +432,9 @@ export function InvoiceEditorPage({ mode }: { mode: 'draft' | 'saved' }) {
             </Button>
             {mode === 'saved' && (
               <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">Delete invoice…</Button>
-                </AlertDialogTrigger>
+                <AlertDialogTrigger
+                  render={<Button variant="destructive">Delete invoice…</Button>}
+                />
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete this invoice?</AlertDialogTitle>
