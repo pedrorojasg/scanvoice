@@ -41,6 +41,25 @@ export function formatMoney(
   return `$${withThousandsSeparators(big.toFixed(2))}`
 }
 
+/**
+ * Line total from its parts: unit_price × quantity − discounts + tax.
+ * Needs a parseable price and quantity; discounts/tax default to 0.
+ * Returns null when it can't be computed (caller keeps the existing total).
+ */
+export function computeLineTotal(parts: {
+  unit_price: string | null
+  quantity: string | null
+  total_discounts: string | null
+  total_tax: string | null
+}): string | null {
+  const price = parseDecimal(parts.unit_price)
+  const quantity = parseDecimal(parts.quantity)
+  if (!price || !quantity) return null
+  const discounts = parseDecimal(parts.total_discounts) ?? new Big(0)
+  const tax = parseDecimal(parts.total_tax) ?? new Big(0)
+  return price.times(quantity).minus(discounts).plus(tax).toString()
+}
+
 /** True when both parse and are numerically equal. */
 export function decimalsEqual(a: string | null, b: string | Big | null): boolean {
   const pa = parseDecimal(a)

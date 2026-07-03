@@ -6,7 +6,7 @@ import type { Invoice, InvoiceLineItem, InvoiceStatus } from '@/types'
 import { INVOICE_STATUSES, STATUS_LABELS } from '@/types'
 import { deleteInvoice, getInvoice, listProducts, saveInvoice } from '@/lib/storage'
 import { clearPendingDraft, readPendingDraft } from '@/lib/extraction'
-import { formatMoney, parseDecimal, sumDecimals } from '@/lib/decimal'
+import { computeLineTotal, formatMoney, parseDecimal, sumDecimals } from '@/lib/decimal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -122,10 +122,23 @@ export function InvoiceEditorPage({ mode }: { mode: 'draft' | 'saved' }) {
       ),
     )
 
+  // Fields that feed the line total; editing one recomputes total_amount.
+  // Editing the total cell itself stays manual (no fighting the user).
+  const LINE_TOTAL_INPUTS = ['unit_price', 'quantity', 'total_discounts', 'total_tax'] as const
+
   const itemText =
     (itemId: string, key: Exclude<keyof InvoiceLineItem, 'id' | 'product_name'>) =>
-    (value: string) =>
-      setItem(itemId, { [key]: value === '' ? null : value })
+    (value: string) => {
+      const patch: Partial<InvoiceLineItem> = { [key]: value === '' ? null : value }
+      if ((LINE_TOTAL_INPUTS as readonly string[]).includes(key)) {
+        const current = invoice.line_items.find((i) => i.id === itemId)
+        if (current) {
+          const total = computeLineTotal({ ...current, ...patch })
+          if (total !== null) patch.total_amount = total
+        }
+      }
+      setItem(itemId, patch)
+    }
 
   const lineSum = sumDecimals(invoice.line_items.map((i) => i.total_amount))
   const parsedTotal = parseDecimal(invoice.total_amount)

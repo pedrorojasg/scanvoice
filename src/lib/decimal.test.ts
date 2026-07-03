@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatMoney, parseDecimal, sumDecimals } from './decimal'
+import { computeLineTotal, formatMoney, parseDecimal, sumDecimals } from './decimal'
 
 describe('parseDecimal', () => {
   it('parses plain decimal strings', () => {
@@ -25,6 +25,32 @@ describe('sumDecimals', () => {
   })
   it('handles high-precision decimal strings', () => {
     expect(sumDecimals(['0.0000000001', '0.0000000002']).toString()).toBe('3e-10')
+  })
+})
+
+describe('computeLineTotal', () => {
+  const base = { unit_price: null, quantity: null, total_discounts: null, total_tax: null }
+  it('multiplies price by quantity', () => {
+    expect(computeLineTotal({ ...base, unit_price: '4.50', quantity: '10' })).toBe('45')
+  })
+  it('subtracts discounts and adds tax', () => {
+    expect(
+      computeLineTotal({
+        ...base,
+        unit_price: '9.80',
+        quantity: '120',
+        total_discounts: '50',
+        total_tax: '246.96',
+      }),
+    ).toBe('1372.96')
+  })
+  it('keeps full decimal precision (no float rounding)', () => {
+    expect(computeLineTotal({ ...base, unit_price: '4.5678', quantity: '3' })).toBe('13.7034')
+  })
+  it('returns null without a parseable price and quantity', () => {
+    expect(computeLineTotal({ ...base, unit_price: '4.50' })).toBeNull()
+    expect(computeLineTotal({ ...base, quantity: '10' })).toBeNull()
+    expect(computeLineTotal({ ...base, unit_price: 'abc', quantity: '10' })).toBeNull()
   })
 })
 
