@@ -6,7 +6,13 @@ import type { Invoice, InvoiceLineItem, InvoiceStatus } from '@/types'
 import { INVOICE_STATUSES, STATUS_LABELS } from '@/types'
 import { deleteInvoice, getInvoice, listProducts, saveInvoice } from '@/lib/storage'
 import { clearPendingDraft, readPendingDraft } from '@/lib/extraction'
-import { computeLineTotal, formatMoney, parseDecimal, sumDecimals } from '@/lib/decimal'
+import {
+  computeLineTotal,
+  formatMoney,
+  isPartialPayment,
+  parseDecimal,
+  sumDecimals,
+} from '@/lib/decimal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -113,6 +119,17 @@ export function InvoiceEditorPage({ mode }: { mode: 'draft' | 'saved' }) {
 
   const setText = (key: keyof Invoice) => (value: string) =>
     set(key, (value === '' ? null : value) as Invoice[typeof key])
+
+  // Editing amount paid to something between 0 and the total flips the
+  // status to "partially paid" automatically.
+  const setAmountPaid = (value: string) => {
+    const amount_paid = value === '' ? null : value
+    const patch: Partial<Invoice> = { amount_paid }
+    if (isPartialPayment(amount_paid, invoice.total_amount)) {
+      patch.status = 'partially paid'
+    }
+    setInvoice({ ...invoice, ...patch })
+  }
 
   const setItem = (itemId: string, patch: Partial<InvoiceLineItem>) =>
     set(
@@ -382,7 +399,7 @@ export function InvoiceEditorPage({ mode }: { mode: 'draft' | 'saved' }) {
                 className={`${moneyInput} h-8 w-[130px]`}
                 placeholder="0.00"
                 value={invoice.amount_paid ?? ''}
-                onChange={(e) => setText('amount_paid')(e.target.value)}
+                onChange={(e) => setAmountPaid(e.target.value)}
               />
             </div>
             <div className="flex items-center justify-between gap-4 border-t pt-2 font-semibold">

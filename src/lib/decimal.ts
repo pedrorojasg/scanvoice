@@ -60,6 +60,16 @@ export function computeLineTotal(parts: {
   return price.times(quantity).minus(discounts).plus(tax).toString()
 }
 
+/** True when a payment is partial: 0 < amount_paid < total_amount. */
+export function isPartialPayment(
+  amountPaid: string | null,
+  totalAmount: string | null,
+): boolean {
+  const paid = parseDecimal(amountPaid)
+  const total = parseDecimal(totalAmount)
+  return Boolean(paid && total && paid.gt(0) && paid.lt(total))
+}
+
 /** True when both parse and are numerically equal. */
 export function decimalsEqual(a: string | null, b: string | Big | null): boolean {
   const pa = parseDecimal(a)

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { computeLineTotal, formatMoney, parseDecimal, sumDecimals } from './decimal'
+import {
+  computeLineTotal,
+  formatMoney,
+  isPartialPayment,
+  parseDecimal,
+  sumDecimals,
+} from './decimal'
 
 describe('parseDecimal', () => {
   it('parses plain decimal strings', () => {
@@ -51,6 +57,24 @@ describe('computeLineTotal', () => {
     expect(computeLineTotal({ ...base, unit_price: '4.50' })).toBeNull()
     expect(computeLineTotal({ ...base, quantity: '10' })).toBeNull()
     expect(computeLineTotal({ ...base, unit_price: 'abc', quantity: '10' })).toBeNull()
+  })
+})
+
+describe('isPartialPayment', () => {
+  it('is true strictly between 0 and the total', () => {
+    expect(isPartialPayment('100', '272.23')).toBe(true)
+    expect(isPartialPayment('0.01', '272.23')).toBe(true)
+    expect(isPartialPayment('272.22', '272.23')).toBe(true)
+  })
+  it('is false at the boundaries', () => {
+    expect(isPartialPayment('0', '272.23')).toBe(false)
+    expect(isPartialPayment('272.23', '272.23')).toBe(false)
+    expect(isPartialPayment('300', '272.23')).toBe(false)
+  })
+  it('is false when either side is missing or invalid', () => {
+    expect(isPartialPayment(null, '272.23')).toBe(false)
+    expect(isPartialPayment('100', null)).toBe(false)
+    expect(isPartialPayment('abc', '272.23')).toBe(false)
   })
 })
 

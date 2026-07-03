@@ -28,6 +28,14 @@ The only secret is the OpenRouter API key, read **server-side** by `api/extract.
 
 Get a key at [openrouter.ai/keys](https://openrouter.ai/keys). The key is never bundled into the frontend.
 
+### API abuse guard
+
+`/api/extract` spends real OpenRouter credit, so it ships with a lightweight guard:
+
+- **Same-origin check** — the request's `Origin`/`Referer` must match the host serving the function; direct curl/scripts get a 403. (A deterrent, not authentication — origins can be spoofed.)
+- **Per-IP rate limit** — 10 scans per 10 minutes, in-memory (persists across requests on Fluid Compute instances, resets on cold start).
+- **Cost bounds** — input truncated to 60k chars, `max_tokens` capped.
+
 ## Local development
 
 The app is a Vite SPA plus one Vercel function. Two options:

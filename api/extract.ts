@@ -7,6 +7,50 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 const MODEL = 'deepseek/deepseek-v4-flash'
 const MAX_TEXT_LENGTH = 60_000
+const MAX_COMPLETION_TOKENS = 16_000 // bounds worst-case cost per request
+
+// ---- Abuse guard -----------------------------------------------------------
+// This is a public demo endpoint spending real OpenRouter credit. Two layers:
+// 1. Same-origin check: the request's Origin/Referer must match the host the
+//    function is served from. Deters direct curl/scripts (spoofable, not auth).
+// 2. Per-IP rate limit, in-memory. Fluid Compute reuses instances, so this
+//    holds across requests; it resets on cold start, which is fine for a demo.
+const RATE_LIMIT_MAX = 10
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+const hitsByIp = new Map<string, number[]>()
+
+function isSameOrigin(req: VercelRequest): boolean {
+  const source = req.headers.origin ?? req.headers.referer
+  if (!source) return false
+  const forwardedHost = req.headers['x-forwarded-host']
+  const hosts = [
+    Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost,
+    req.headers.host,
+  ].filter(Boolean)
+  try {
+    const sourceHost = new URL(source).host
+    return hosts.includes(sourceHost)
+  } catch {
+    return false
+  }
+}
+
+function isRateLimited(req: VercelRequest): boolean {
+  const forwarded = req.headers['x-forwarded-for']
+  const ip =
+    (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim() ||
+    req.socket?.remoteAddress ||
+    'unknown'
+  const now = Date.now()
+  const recent = (hitsByIp.get(ip) ?? []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS)
+  if (recent.length >= RATE_LIMIT_MAX) {
+    hitsByIp.set(ip, recent)
+    return true
+  }
+  recent.push(now)
+  hitsByIp.set(ip, recent)
+  return false
+}
 
 // Runtime extraction prompt — kept in sync with EXTRACTION_PROMPT.md.
 const SYSTEM_PROMPT = `You are an invoice data extraction engine. You receive the raw text of an invoice
@@ -115,6 +159,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return
   }
 
+  if (!isSameOrigin(req)) {
+    res.status(403).json({ error: 'Requests are only accepted from the Scanvoice app.' })
+    return
+  }
+  if (isRateLimited(req)) {
+    res.status(429).json({
+      error: 'Too many scans from this address — try again in a few minutes.',
+    })
+    return
+  }
+
   const text = typeof req.body?.text === 'string' ? req.body.text.trim() : ''
   if (!text) {
     res.status(400).json({ error: 'Missing "text" in request body.' })
@@ -140,6 +195,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         model: MODEL,
         temperature: 0,
+        max_tokens: MAX_COMPLETION_TOKENS,
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },

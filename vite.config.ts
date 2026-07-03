@@ -12,9 +12,11 @@ export default defineConfig({
     },
   },
   server: {
-    // `vercel dev --listen 3000` serves api/extract.ts during local development
+    // `vercel dev --listen 3000` serves api/extract.ts during local development.
+    // changeOrigin must stay off so the function's same-origin guard sees the
+    // browser's Host and Origin agree.
     proxy: {
-      '/api': 'http://localhost:3000',
+      '/api': { target: 'http://localhost:3000', changeOrigin: false },
     },
   },
 })
