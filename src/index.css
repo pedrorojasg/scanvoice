@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+
+    /* Approved design tokens (PROMPT.md — "UI design (approved)") */
+    --color-paper: #F7F7F4;
+    --color-surface: #FFFFFF;
+    --color-ink: #16211C;
+    --color-ink-2: #5A6660;
+    --color-ink-3: #8B948F;
+    --color-line: #E3E5E0;
+    --color-line-strong: #CDD2CE;
+    --color-brand: #175E45;
+    --color-brand-hover: #0F4634;
+    --color-brand-tint: #E8F1ED;
+
+    /* Status colors: text on ~10% tint background */
+    --color-st-draft: #5A6660;
+    --color-st-draft-tint: #EEF0EE;
+    --color-st-open: #1D4ED8;
+    --color-st-open-tint: #E8EDFB;
+    --color-st-partial: #A16207;
+    --color-st-partial-tint: #F7EFDC;
+    --color-st-paid: #15803D;
+    --color-st-paid-tint: #E4F2E9;
+    --color-st-cancel: #B42318;
+    --color-st-cancel-tint: #F9E9E7;
+    --color-warn-border: #E5D3A8;
+    --color-warn-ink: #6E4A08;
+
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+:root {
+    --background: #F7F7F4;
+    --foreground: #16211C;
+    --card: #FFFFFF;
+    --card-foreground: #16211C;
+    --popover: #FFFFFF;
+    --popover-foreground: #16211C;
+    --primary: #175E45;
+    --primary-foreground: #FFFFFF;
+    --secondary: #EEF0EE;
+    --secondary-foreground: #16211C;
+    --muted: #F7F7F4;
+    --muted-foreground: #5A6660;
+    --accent: #E8F1ED;
+    --accent-foreground: #0F4634;
+    --destructive: #B42318;
+    --border: #E3E5E0;
+    --input: #E3E5E0;
+    --ring: #175E45;
+    --radius: 0.625rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-size: 14px;
+  }
+  html {
+    @apply font-sans;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@utility label-caps {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+@utility font-data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
